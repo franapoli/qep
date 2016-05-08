@@ -7,4 +7,6 @@ Author: Francesco Napolitano
 Maintainer: Francesco Napolitano <franapoli@gmail.com>
 Description: Quantized Expression Profiles
 License: MIT
-Suggests: testthat
+Suggests:
+    testthat
+RoxygenNote: 5.0.1
