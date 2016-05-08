@@ -15,8 +15,12 @@ qep_checknames <- function(qdata)
 
 qep <- function(qdata, gnames=rownames(qdata), cndnames=colnames(qdata))
 {
-    if(!is.integer(qdata))
-        stop("qdata must be of class integer.")
+    if(!is.integer(qdata)) {
+        if(all(round(qdata)==qdata)) {
+            qdata <- matrix(as.integer(qdata), nrow(qdata),
+                            dimnames=list(rownames(qdata),colnames(qdata)))
+        } else stop("qdata must contain integer values.")
+    }
     if(any(is.na(qdata)))
         stop("qdata can not contain NAs")
 
@@ -25,7 +29,7 @@ qep <- function(qdata, gnames=rownames(qdata), cndnames=colnames(qdata))
     ## rownames(qdata) <- gnames
     ## colnames(qdata) <- cndnames
 
-    dimnames(qdata) <- list(genes=gnames, conditions=cndnames)
+    dimnames(qdata) <- list(observations=gnames, conditions=cndnames)
     
     return(structure(qdata, class="qep"))
 }
@@ -36,28 +40,39 @@ is.qep <- function(q)
 }
 
 
-dist.qep <- function(qep1, qep2=NULL, method="manhattan", l=NULL, parallel=F, verbose=T)
+dist.qep <- function(qep1, qep2=NULL, distf=bsf.dist.row,
+                     verbose=T, parallel=F, callbackf=NULL, ...)
 {
-  nbins <- max(qep1)
-  SF <- abs(row(matrix(NA,nbins,nbins))-col(matrix(NA,nbins,nbins)))
-  maxD <- sum(abs(1:nbins-nbins:1))
-  maxD <- 1
+    distpar <- list(...)
+    distfname <- deparse(substitute(distf))
+
+    if(distfname == "bsf.dist.row") {
+        nbins <- max(qep1)
+        SF <- abs(row(matrix(NA,nbins,nbins))-col(matrix(NA,nbins,nbins)))
+        maxD <- sum(abs(1:nbins-nbins:1))
+        distpar <- list(nbins = nbins, SF = SF, maxD = maxD)
+    }    
   
     if(is.null(qep2)) {
-        d <- switch(method,
-                    "manhattan" = stats::dist(qep1, "manhattan"),
-                    "bsf" = {
-                        dists <- matrix(NA, ncol(qep1), ncol(qep1))
-                        rownames(dists) <- colnames(dists) <- colnames(qep1)
-                        nsteps <- ncol(qep1)-1
-                        dists <- foreach(i=1:nsteps, .export="bsf.dist") %dopar% {
-                            cat("\r row", i, " of ", nsteps)
-                            sapply((i+1):ncol(qep1), function(x) bsf.dist(qep1[,i],qep1[,x],nbins,SF,maxD))
-                        }
-                        cat("\n")
-                        return(list2distmat(dists))
-                    }
-                    )
+        dists <- matrix(NA, ncol(qep1), ncol(qep1))
+        rownames(dists) <- colnames(dists) <- colnames(qep1)
+        nsteps <- ncol(qep1)-1
+        
+        expr <- expression({
+            if(!is.null(callbackf))
+                do.call(callbackf, list(i))
+            idx <- (i+1):ncol(qep1)
+            do.call(distf, c(list(v1 = qep1[,i], V2 = qep1[,idx,drop=F]),
+                             distpar))
+        })
+        
+        if(parallel) {
+            dists <- foreach(i=1:nsteps, .export=distfname) %dopar% eval(expr)
+        } else dists <- foreach(i=1:nsteps) %do% eval(expr)
+
+        return(list2distmat(dists))
+
+  
     } else {
         d <- switch(method,
                     "manhattan" = stats::dist(qep1, "manhattan"),
@@ -80,11 +95,8 @@ dist.qep <- function(qep1, qep2=NULL, method="manhattan", l=NULL, parallel=F, ve
 summary.qep <- function(x, nbins=max(x, na.rm=T))
 {
     cat("Number of conditions:", ncol(x), "\n")
-    cat("Number of genes:", nrow(x), "\n")
+    cat("Number of observations:", nrow(x), "\n")
     missg <- unique(apply(x, 2, function(a) sum(is.na(a))))
-    cat("Min. number of missing genes:", min(missg), "\n")
-    cat("Max. number of missing genes:", max(missg), "\n")
-    cat("Profiles with missing genes:", sum(missg>0), "\n")
     cat("\n")
     cat("Unique types of binning:\n")
 

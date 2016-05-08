@@ -1,9 +1,10 @@
 Package: qep
 Type: Package
 Title: Quantized Expression Profiles
-Version: 1.0
+Version: 0.0.1.1
 Date: 2016-05-07
 Author: Francesco Napolitano
 Maintainer: Francesco Napolitano <franapoli@gmail.com>
 Description: Quantized Expression Profiles
 License: MIT
+Suggests: testthat
