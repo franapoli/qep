@@ -63,10 +63,6 @@ dist.qep <- function(qep1, qep2=NULL, distf=bsf.dist.row,
     }    
   
     if(is.null(qep2)) {
-        dists <- matrix(NA, ncol(qep1), ncol(qep1))
-        rownames(dists) <- colnames(dists) <- colnames(qep1)
-        nsteps <- ncol(qep1)-1
-        
         expr <- expression({
             if(!is.null(callbackf))
                 do.call(callbackf, list(i))
@@ -76,20 +72,27 @@ dist.qep <- function(qep1, qep2=NULL, distf=bsf.dist.row,
         })
         
         if(parallel) {
-            dists <- foreach(i=1:nsteps, .export=distfname) %dopar% eval(expr)
-        } else dists <- foreach(i=1:nsteps) %do% eval(expr)
-
-        return(list2distmat(dists))
-
+            dists <- foreach(i=1:(ncol(qep1)-1), .export=distfname) %dopar% eval(expr)
+        } else dists <- foreach(i=1:(ncol(qep1)-1)) %do% eval(expr)
+        
+        return(list2distmat(dists, colnames(qep1)))
   
     } else {
-        warning("implement me")
-                        ## dists <- matrix(NA, ncol(qep1), ncol(qep2))
-                        ## rownames(dists) <- colnames(qep1)
-                        ## colnames(dists) <- colnames(qep2)
-                        ## for(i in 1:ncol(qep1))
-                        ##     dists[i,] <- apply(qep2,2,bsf,v1=qep1[,i])
-                        ## return(dists)
+        expr <- expression({
+            if(!is.null(callbackf))
+                do.call(callbackf, list(i))
+            do.call(distf, c(list(v1 = qep1[,i], V2 = qep2),
+                             distpar))
+        })        
+        
+        if(parallel) {
+            dists <- foreach(i=1:ncol(qep1), .export=distfname) %dopar% eval(expr)
+        } else dists <- foreach(i=1:ncol(qep1)) %do% eval(expr)
+
+        m <- do.call(rbind, dists)
+        rownames(m) <- colnames(qep1)
+        colnames(m) <- colnames(qep2)
+        return(m)
     }
 }
 

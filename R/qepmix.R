@@ -6,12 +6,13 @@ ncol.qepmix <- function(qmix)
 nrow.qepmix <- function(qmix)
     return(length(dimnames(qmix)[[1]]))
 
-qepmix <- function(qdatal)
+qepmix <- function(...)
 {
+    qdatal <- list(...)
     if(!all(sapply(qdatal, is.qep)))
         stop("all items in qdatal must be of class qep.")
 
-    dict <- sort(unique(do.call(c, lapply(qdatal, rownames))))
+    dict <- unique(do.call(c, lapply(qdatal, rownames)))
     dict <- dict[!is.na(dict)]
     
     return(structure(qdatal, obs=dict, class="qepmix"))
@@ -21,7 +22,7 @@ qepmix <- function(qdatal)
 `[.qepmix` <- function(qm, v, subslice=T, na.rm=T, collapse=T, compact=F)
  {
      if(!subslice) {
-         v2 <- sapply(v, function(x) rel2abs(qm, x, 1:ncol(qm[[x]])))
+         v2 <- lapply(v, function(x) rel2abs(qm, x, 1:ncol(qm[[x]])))
          if(length(v)>1)
              v <- do.call(c,v2)
          else v <- v2
@@ -38,7 +39,7 @@ qepmix <- function(qdatal)
              for(i in 2:length(qeps))
                  nonNAset <- intersect(nonNAset, rownames(qm[[qeps[i]]]))
      } else nonNAset <- attr(qm, "obs")
-
+     
      resmat <- list()
      for(i in 1:length(qeps))
      {
@@ -46,15 +47,25 @@ qepmix <- function(qdatal)
 
          if(na.rm) {
              sub <- qm[[q]][nonNAset, idx[idx[,1]==q,2], drop=F]
-             } else sub <- qm[[q]][, idx[idx[,1]==q,2], drop=F]
-
-         resmat[[i]] <- qep(sub)
+             resmat[[i]] <- qep(sub)
+         } else
+             {
+                 sub <- qm[[q]][, idx[idx[,1]==q,2], drop=F]
+                 resmat[[i]] <- matrix(NA,length(nonNAset),ncol(sub))
+                 rownames(resmat[[i]]) <- nonNAset
+                 colnames(resmat[[i]]) <- colnames(sub)
+                 resmat[[i]][rownames(sub),] <- sub
+             }         
      }
-
+          
      if(collapse)
-         return(qep(do.call(cbind, resmat)))
+         if(na.rm)
+             return(qep(do.call(cbind, resmat))) else {
+                 return(do.call(cbind, resmat))
+             }
      
-     return(qepmix(resmat))
+     if(na.rm)
+         return(do.call(qepmix, resmat)) else return(resmat)
  }
 
 
@@ -120,16 +131,17 @@ rel2abs <- function(qmix, i, v=NULL)
 dist.qepmix <- function(qmix, ...)
 {
     distmat <- matrix(NA, ncol(qmix), ncol(qmix))
+    rownames(distmat) <- colnames(distmat) <- colnames(qmix)
     l <- cumsum(c(0,sapply(qmix, ncol)))
     for(i in 1:length(qmix)) {
         idx <- (l[i]+1):(l[i+1])
-        distmat[idx,idx] <- as.matrix(dist(qmix[[i]]))
+        distmat[idx,idx] <- as.matrix(dist(qmix[[i]], ...))
     }
-
+    
     for(i in 1:(length(qmix)-1))
-        for(j in 2:length(qmix)) {
-            umix <- qmix[c(i, j), subslice=F]
-            subdist <- as.matrix(dist(umix[[1]], umix[[2]]))
+        for(j in (i+1):length(qmix)) {
+            umix <- qmix[c(i, j), subslice=F, collapse=F]
+            subdist <- dist(umix[[1]], umix[[2]])
             distmat[rel2abs(qmix,i), rel2abs(qmix,j)] <- subdist
             distmat[rel2abs(qmix,j), rel2abs(qmix,i)] <- t(subdist)
     }

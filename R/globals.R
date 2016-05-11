@@ -23,24 +23,22 @@ bsf.dist <- function(v1, v2, nbins, SF=NULL, maxD=NULL) {
     v1 <- as.factor(v1)
     v2 <- as.factor(v2)
     ints <- table(v1,v2)
-    ## ridx <- as.numeric(rownames(ints))
-    ## cidx <- as.numeric(colnames(ints))    
     ridx <- as.numeric(rownames(ints))
     cidx <- as.numeric(colnames(ints))    
                            
     unions <- outer(table(v1),table(v2),'+')-ints
-    ## unions[unions==0] <- 1      
     JSF <- SF[ridx,cidx]*(ints/unions)
     return(sum(JSF)/maxD)
 }
 
 
-list2distmat <- function(d)
+list2distmat <- function(d, dnames)
   {
     n <- length(d)+1
     m <- matrix(0, n, n)
     for(i in 1:(n-1))
-      m[(i+1):n,i] <- d[[i]]
+        m[(i+1):n,i] <- d[[i]]
+    rownames(m) <- colnames(m) <- dnames
     return(as.dist(m))
   }
 

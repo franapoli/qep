@@ -122,11 +122,18 @@ data3 <- cbind(v3.1 = c(1,1,2,2,2,3,3,3,1,3,1),
                v3.3 = c(2,2,1,1,2,1,1,3,1,3,3))
 rownames(data3) <- c(paste0("O",4:6), paste0("O",7:14))
 
-qm <- qepmix(list(qep(data), qep(data2), qep(data3)))
+qm <- qepmix(qep(data), qep(data2), qep(data3))
 
 v3.m <- data[intersect(rownames(data),rownames(data2)),3]
 v4.m <- data2[intersect(rownames(data),rownames(data2)),1]
 
-test_that("bsf dist on qepmix", {    
-    expect_equal(bsf.dist(v3.m,v4.m,3,maxD=1), 9/20)
-})
+maxD <- sum(abs(1:3-(3:1)))
+subm <- qm[c(3,5,7),na.rm=F]
+test_that("slicing on qepmix", {    
+              expect_equal(bsf.dist(v3.m,v4.m,3,maxD=1), 9/20)
+              expect_equal(as.matrix(dist(qm[1:4]))[3,4], 9/20/maxD)
+              expect_equal(dim(subm), c(dim(qm)[1],3))
+              expect_equal(subm[rownames(data),1], data[,3])
+              expect_equal(subm[rownames(data2),2], data2[,2])
+              expect_equal(subm[rownames(data3),3], data3[,2])              
+          })
