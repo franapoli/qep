@@ -1,4 +1,4 @@
-
+    
 ncol <- function(object, ...) UseMethod("ncol")
 ncol.default <- base::ncol
 nrow <- function(object, ...) UseMethod("nrow")

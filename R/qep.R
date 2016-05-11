@@ -1,19 +1,21 @@
-                        
+
+#'@import foreach
+
 qep_checknames <- function(qdata)
 {    
     gnames <- rownames(qdata)
     if(class(qdata)!="matrix")
         stop("qdata must be an object of class matrix.")
     if(is.null(gnames))
-        stop(paste0("Please provide gene names as rownames ",
+        stop(paste0("Please provide observation names as rownames ",
                     "of qdata or through the gnames parameter."))
     if(any(duplicated(gnames)))
-        stop("Gene names must be unique.")
+        stop("Observation names must be unique.")
     if(any(is.na(gnames)))
-        stop("Gene names can not be NA")
+        stop("Observation names can not be NA")
 }
 
-qep <- function(qdata, gnames=rownames(qdata), cndnames=colnames(qdata))
+qep <- function(qdata, nbins = max(qdata), suppressMinWarn = F)
 {
     if(!is.integer(qdata)) {
         if(all(round(qdata)==qdata)) {
@@ -21,17 +23,24 @@ qep <- function(qdata, gnames=rownames(qdata), cndnames=colnames(qdata))
                             dimnames=list(rownames(qdata),colnames(qdata)))
         } else stop("qdata must contain integer values.")
     }
+
     if(any(is.na(qdata)))
         stop("qdata can not contain NAs")
 
+    if(min(qdata)>1 && !suppressMinWarn)
+        warning("Minimum value larger than 1")
+
     qep_checknames(qdata)
     
-    ## rownames(qdata) <- gnames
-    ## colnames(qdata) <- cndnames
-
-    dimnames(qdata) <- list(observations=gnames, conditions=cndnames)
+    dimnames(qdata) <- list(observations=rownames(qdata), conditions=colnames(qdata))
     
-    return(structure(qdata, class="qep"))
+    return(
+        structure(
+            qdata,
+            nbins = nbins,
+            class = "qep"
+        )
+    )
 }
 
 is.qep <- function(q)
@@ -74,23 +83,26 @@ dist.qep <- function(qep1, qep2=NULL, distf=bsf.dist.row,
 
   
     } else {
-        d <- switch(method,
-                    "manhattan" = stats::dist(qep1, "manhattan"),
-                    "bsf" = {
-                        dists <- matrix(NA, ncol(qep1), ncol(qep2))
-                        rownames(dists) <- colnames(qep1)
-                        colnames(dists) <- colnames(qep2)
-                        for(i in 1:ncol(qep1))
-                            dists[i,] <- apply(qep2,2,bsf,v1=qep1[,i])
-                        return(dists)
-                    }
-                    )
+        warning("implement me")
+                        ## dists <- matrix(NA, ncol(qep1), ncol(qep2))
+                        ## rownames(dists) <- colnames(qep1)
+                        ## colnames(dists) <- colnames(qep2)
+                        ## for(i in 1:ncol(qep1))
+                        ##     dists[i,] <- apply(qep2,2,bsf,v1=qep1[,i])
+                        ## return(dists)
     }
-    return(d)
 }
 
 
-
+print.qep <- function(x, ...)
+{
+    nbins <- attr(x, "nbins")
+    attr(x, "class") <- NULL
+    attr(x, "nbins") <- NULL
+    names(dimnames(x)) <- c("Obs.", "Conditions")
+    print(x)
+    cat(paste("Num. bins:", nbins, "\n"))
+}
 
 summary.qep <- function(x, nbins=max(x, na.rm=T))
 {

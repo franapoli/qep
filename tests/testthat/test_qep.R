@@ -122,7 +122,11 @@ data3 <- cbind(v3.1 = c(1,1,2,2,2,3,3,3,1,3,1),
                v3.3 = c(2,2,1,1,2,1,1,3,1,3,3))
 rownames(data3) <- c(paste0("O",4:6), paste0("O",7:14))
 
-qm <- qepmix(list(qep(data2), qep(data2), qep(data3)))
+qm <- qepmix(list(qep(data), qep(data2), qep(data3)))
 
-test_that("bsf dist on qep", {
+v3.m <- data[intersect(rownames(data),rownames(data2)),3]
+v4.m <- data2[intersect(rownames(data),rownames(data2)),1]
+
+test_that("bsf dist on qepmix", {    
+    expect_equal(bsf.dist(v3.m,v4.m,3,maxD=1), 9/20)
 })

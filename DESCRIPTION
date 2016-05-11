@@ -5,8 +5,10 @@ Version: 0.0.1.1
 Date: 2016-05-07
 Author: Francesco Napolitano
 Maintainer: Francesco Napolitano <franapoli@gmail.com>
-Description: Quantized Expression Profiles
-License: MIT
+Description: Quantized Expression Profiles.
+License: GPL-3
+Imports:
+    foreach
 Suggests:
     testthat
 RoxygenNote: 5.0.1

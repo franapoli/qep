@@ -14,14 +14,14 @@ qepmix <- function(qdatal)
     dict <- sort(unique(do.call(c, lapply(qdatal, rownames))))
     dict <- dict[!is.na(dict)]
     
-    return(structure(qdatal, genes=dict, class="qepmix"))
+    return(structure(qdatal, obs=dict, class="qepmix"))
 }
 
 
-unifmix <- function(qm, v, subslice=F, na.rm=T)
+`[.qepmix` <- function(qm, v, subslice=T, na.rm=T, collapse=T, compact=F)
  {
      if(!subslice) {
-         v2 <- sapply(v, function(x) rel2abs(qmix, x, 1:ncol(qmix[[x]])))
+         v2 <- sapply(v, function(x) rel2abs(qm, x, 1:ncol(qm[[x]])))
          if(length(v)>1)
              v <- do.call(c,v2)
          else v <- v2
@@ -33,11 +33,11 @@ unifmix <- function(qm, v, subslice=F, na.rm=T)
      k <- 1
 
      if(na.rm) {
-         nonNAset <- rownames(qmix[[qeps[1]]])
+         nonNAset <- rownames(qm[[qeps[1]]])
          if(length(qeps)>1)
              for(i in 2:length(qeps))
                  nonNAset <- intersect(nonNAset, rownames(qm[[qeps[i]]]))
-     } else nonNAset <- attr(qm, "genes")
+     } else nonNAset <- attr(qm, "obs")
 
      resmat <- list()
      for(i in 1:length(qeps))
@@ -50,10 +50,21 @@ unifmix <- function(qm, v, subslice=F, na.rm=T)
 
          resmat[[i]] <- qep(sub)
      }
+
+     if(collapse)
+         return(qep(do.call(cbind, resmat)))
      
      return(qepmix(resmat))
  }
 
+
+dims <- function(qm)
+{
+    dm <- sapply(qm, dim)
+    colnames(dm) <- 1:ncol(dm)
+    rownames(dm) <- c("Obs.","Cond.")
+    return(dm)
+}
 
 "dimnames<-.qepmix" <- function(qm, value)
 {
@@ -72,7 +83,7 @@ unifmix <- function(qm, v, subslice=F, na.rm=T)
 "dimnames.qepmix" <- function(qm, i=NULL)
 {
     return(list(
-        genes=attr(qm, "genes"),
+        observations=attr(qm, "obs"),
         conditions=do.call(c,sapply(qm, colnames))
         ))
 }
@@ -112,13 +123,13 @@ dist.qepmix <- function(qmix, ...)
     l <- cumsum(c(0,sapply(qmix, ncol)))
     for(i in 1:length(qmix)) {
         idx <- (l[i]+1):(l[i+1])
-        distmat[idx,idx] <- as.matrix(dist(qmix[[i]], method="bsf"))
+        distmat[idx,idx] <- as.matrix(dist(qmix[[i]]))
     }
 
     for(i in 1:(length(qmix)-1))
         for(j in 2:length(qmix)) {
-            umix <- unifmix(qmix, c(i, j))
-            subdist <- as.matrix(dist(umix[[1]], umix[[2]], "bsf"))
+            umix <- qmix[c(i, j), subslice=F]
+            subdist <- as.matrix(dist(umix[[1]], umix[[2]]))
             distmat[rel2abs(qmix,i), rel2abs(qmix,j)] <- subdist
             distmat[rel2abs(qmix,j), rel2abs(qmix,i)] <- t(subdist)
     }
