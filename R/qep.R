@@ -107,6 +107,16 @@ print.qep <- function(x, ...)
     cat(paste("Num. bins:", nbins, "\n"))
 }
 
+## `[.qep` <- function(x, ..., compact=F) {
+##     if(compact){
+##         p <- list(...)
+##         attr(x, "class") <- NULL
+##         x <- list(...))
+##         return(qep(apply(x, 2, rank, ties.method="random")))
+##     }
+##     NextMethod()
+## }
+
 summary.qep <- function(x, nbins=max(x, na.rm=T))
 {
     cat("Number of conditions:", ncol(x), "\n")

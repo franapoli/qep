@@ -14,6 +14,46 @@ bsf.dist.row <- function(v1, V2, nbins, SF, maxD)
     )
 }
 
+jacc.dist.row <- function(v1, V2)
+{
+    return(
+        apply(V2, 2, function(x) sum(abs(v1 - x))
+    )
+}
+
+mantra.dist <- function(v1,v2, ng)
+    {
+        gseadist <- function(v1,v2, binidx)
+            {
+                n <- length(v1)
+                v1inv2 <- v2[match(binidx, v1)]
+                binvect <- 1:n %in% v1inv2
+                NR <- length(binidx)
+                hits <- cumsum(binvect)/NR
+                miss <- cumsum(!binvect)/(n-NR)
+                w <- which.max(abs(hits-miss))
+                return(hits[w]-miss[w])
+            }
+
+        n <- length(v1)
+        d1 <- gseadist(v1,v2,1:ng)
+        d2 <- gseadist(v1,v2,(n-ng+1):n)
+        d3 <- gseadist(v2,v1,1:ng)
+        d4 <- gseadist(v2,v1,(n-ng+1):n)
+        Davg <- ((d1-d2)/2 + (d3-d4)/2)/2
+        Dmax <- max((d1-d2)/2, (d3-d4)/2)        
+        
+        return(1 - Davg)
+    }
+    
+    
+mantra.dist.row <- function(v1, V2)
+{
+    return(
+        apply(V2, 2, function(x) mantra.dist(v1, x))
+    )    
+}
+
 bsf.dist <- function(v1, v2, nbins, SF=NULL, maxD=NULL) {
     if(is.null(maxD))
         maxD <- sum(abs(1:nbins-(nbins:1)))
