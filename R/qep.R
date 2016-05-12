@@ -72,7 +72,9 @@ dist.qep <- function(qep1, qep2=NULL, distf=bsf.dist.row,
         })
         
         if(parallel) {
-            dists <- foreach(i=1:(ncol(qep1)-1), .export=distfname) %dopar% eval(expr)
+            dists <- foreach(i=1:(ncol(qep1)-1),
+                             .export=c(distfname, "callbackf", "qep1", "distpar", "distf")
+                             ) %dopar% eval(expr)
         } else dists <- foreach(i=1:(ncol(qep1)-1)) %do% eval(expr)
         
         return(list2distmat(dists, colnames(qep1)))
@@ -86,7 +88,9 @@ dist.qep <- function(qep1, qep2=NULL, distf=bsf.dist.row,
         })        
         
         if(parallel) {
-            dists <- foreach(i=1:ncol(qep1), .export=distfname) %dopar% eval(expr)
+            dists <- foreach(i=1:ncol(qep1),
+                             .export=c(distfname, "callbackf", "qep1", "qep2", "distpar", "distf")
+                             )%dopar% eval(expr)
         } else dists <- foreach(i=1:ncol(qep1)) %do% eval(expr)
 
         m <- do.call(rbind, dists)

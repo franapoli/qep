@@ -7,6 +7,13 @@ dist <- function(object, ...) UseMethod("dist")
 if(require(stats))
     dist.default <- stats::dist
 
+schementr <- function(scheme)
+{
+    if(abs(sum(scheme)-1)>10^-15)
+        stop("scheme values must sum to 1")
+    -sum(scheme*log(scheme))
+}
+
 bsf.dist.row <- function(v1, V2, nbins, SF, maxD)
 {
     return(
@@ -17,11 +24,11 @@ bsf.dist.row <- function(v1, V2, nbins, SF, maxD)
 jacc.dist.row <- function(v1, V2)
 {
     return(
-        apply(V2, 2, function(x) sum(abs(v1 - x))
+        apply(V2, 2, function(x) sum(abs(v1 - x)))
     )
 }
 
-mantra.dist <- function(v1,v2, ng)
+mantra.dist <- function(v1, v2, ng)
     {
         gseadist <- function(v1,v2, binidx)
             {
@@ -47,10 +54,10 @@ mantra.dist <- function(v1,v2, ng)
     }
     
     
-mantra.dist.row <- function(v1, V2)
+mantra.dist.row <- function(v1, V2, ng)
 {
     return(
-        apply(V2, 2, function(x) mantra.dist(v1, x))
+        apply(V2, 2, function(x) mantra.dist(v1, x, ng))
     )    
 }
 

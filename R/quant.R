@@ -32,12 +32,11 @@ logistic.ep <- function(nbins, steep, width, baseline, zero, trim=T)
     return(f)
 }
 
-  if(is.null(dim(zero)))
+  if(length(zero)==1)
     {
-      f <- shiftf(f,rot)
+        f <- shiftf(f,rot)
     } else {
-      rots <- 0.5 - apply(zero,2,function(x)sum(x>0)/length(x))
-      f <- sapply(round(rots*nbins), shiftf, f=f)
+      f <- sapply(round(rot*nbins), shiftf, f=f)
     }
 
   return(f)
@@ -58,6 +57,8 @@ quantize.ep <- function(data, scheme,
     if(!is.null(dim(scheme))) {
         if(abs(sum(scheme)-ncol(scheme))>(10^-15)*ncol(scheme))
             stop("All schemes must sum to 1")
+        if(ncol(scheme)!=ncol(data))
+            stop("data and scheme must have same number of columns")
         binned <- matrix(NA,nrow(data),ncol(data))
         for(i in 1:ncol(data)) {
           cs <- cumsum(scheme[,i])

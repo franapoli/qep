@@ -19,7 +19,7 @@ qepmix <- function(...)
 }
 
 
-`[.qepmix` <- function(qm, v, subslice=T, na.rm=T, collapse=T, compact=F)
+`[.qepmix` <- function(qm, v, subslice=T, na.rm=T, collapse=T)
  {
      if(!subslice) {
          v2 <- lapply(v, function(x) rel2abs(qm, x, 1:ncol(qm[[x]])))
