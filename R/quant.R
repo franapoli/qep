@@ -45,15 +45,16 @@ norm.qs <- function(nbins, sd, baseline, zero, trim=T)
 
 logis.qs <- function(nbins, steep, width, baseline, zero, trim=T)
 {
-  l1 <- steep; hsh <- width
-  vsh <- baseline; rot <- zero
+    l1 <-  30*steep;
+    hsh <- 30*width;
+    vsh <- baseline; rot <- zero
   
-  odd <- nbins%%2
-  nbins <- ceiling(nbins/2)
-  f <- plogis(seq(-l1,l1,length=nbins)+hsh)+vsh;
-  f <- (1-vsh)/(max(f)-min(f))*(f-max(f))+1 # range normalization
+    odd <- nbins%%2
+    nbins <- ceiling(nbins/2)
+    f <- plogis(seq(-l1,l1,length=nbins)+hsh)+vsh;
+    f <- (1-vsh)/(max(f)-min(f))*(f-max(f))+1 # range normalization
 
-  f2 <- f[length(f):1]
+    f2 <- f[length(f):1]
 
   if(odd) {
       f <- c(f[1:(length(f)-1)],f2)
@@ -61,7 +62,7 @@ logis.qs <- function(nbins, steep, width, baseline, zero, trim=T)
 
   f <- shiftf(f,zero,trim)
 
-  return(f)
+    return(f)
 }
                           
 quantize <- function(data, qscheme,
