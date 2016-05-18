@@ -29,21 +29,22 @@ shiftf <- function(f, zero, trim=T) {
 
 unif.qs <- function(nbins)
 {
-    uni <- seq(0,1,length=nbins)
+    uni <- rep(1/nbins, nbins)
     return(uni)
 }
 
 
-norm.qs <- function(nbins, sd, baseline, zero, trim=T)
+norm.qs <- function(nbins, sd, baseline, zero=0, trim=T)
 {
     vsh <- baseline
     uni <- seq(0,1,length=nbins)
-    f <- dnorm(seq(-1,1,length=31), sd=sd)
+    f <- dnorm(seq(-1,1,length=nbins), sd=sd)
     f <- (1-vsh)/(max(f)-min(f))*(f-max(f))+1 # range normalization
     f <- shiftf(f,zero,trim)
+    return(f)
 }
 
-logis.qs <- function(nbins, steep, width, baseline, zero, trim=T)
+logis.qs <- function(nbins, steep, width, baseline, zero=0, trim=T)
 {
     l1 <-  30*steep;
     hsh <- 30*width;
