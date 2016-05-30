@@ -54,13 +54,6 @@ dist.qep <- function(qep1, qep2=NULL, distf=bsf.dist.row,
 {
     distpar <- list(...)
     distfname <- deparse(substitute(distf))
-
-    if(distfname == "bsf.dist.row") {
-        nbins <- max(qep1)
-        SF <- abs(row(matrix(NA,nbins,nbins))-col(matrix(NA,nbins,nbins)))
-        maxD <- sum(abs(1:nbins-nbins:1))
-        distpar <- list(nbins = nbins, SF = SF, maxD = maxD)
-    }    
   
     if(is.null(qep2)) {
         expr <- expression({

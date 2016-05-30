@@ -1,6 +1,6 @@
 
 dim.qepmix <- function(qmix)
-    return(c(nrow(qmix),ncol(qmix)))
+    return(c(nrow.qepmix(qmix),ncol.qepmix(qmix)))
 ncol.qepmix <- function(qmix)
     return(length(dimnames(qmix)[[2]]))
 nrow.qepmix <- function(qmix)
@@ -135,16 +135,45 @@ dist.qepmix <- function(qmix, ...)
     l <- cumsum(c(0,sapply(qmix, ncol)))
     for(i in 1:length(qmix)) {
         idx <- (l[i]+1):(l[i+1])
-        distmat[idx,idx] <- as.matrix(dist(qmix[[i]], ...))
+        distmat[idx,idx] <- as.matrix(dist.qep(qmix[[i]], ...))
     }
-    
+
     for(i in 1:(length(qmix)-1))
         for(j in (i+1):length(qmix)) {
             umix <- qmix[c(i, j), subslice=F, collapse=F]
-            subdist <- dist(umix[[1]], umix[[2]])
+            subdist <- dist.qep(umix[[1]], umix[[2]], ...)
             distmat[rel2abs(qmix,i), rel2abs(qmix,j)] <- subdist
             distmat[rel2abs(qmix,j), rel2abs(qmix,i)] <- t(subdist)
     }
 
     return(distmat)
 }
+
+
+qmix.subdists <- function(qmix,d)
+  {
+    n <- length(qmix)
+    bounds <- c(1,sapply(qmix,ncol)+1)
+    
+    res <- list()
+    for(i in 1:n){
+      res[[i]] <- list()
+      for(j in i:n)
+        res[[i]][[j]] <- as.vector(d[bounds[i]:(bounds[i+1]-1), bounds[j]:(bounds[j+1]-1)])
+      }
+
+    return(res)
+  }
+
+qmix.plotsubdists <- function(d)
+  {
+    n=length(d)
+    par(mfrow=c(n,n))
+    for(i in 1:n){
+      for(j in 1:n)
+        if(j<i)
+          plot.new() else {
+        hist(d[[i]][[j]], 100)
+      }
+      }    
+  }

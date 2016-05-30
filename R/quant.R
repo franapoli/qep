@@ -20,7 +20,7 @@ shiftf <- function(f, zero, trim=T) {
     {
         f <- doit(f,zero,trim)
     } else {
-      f <- sapply(round(zero*nbins), shiftf, f=f, trim=trim)
+      f <- sapply(round(zero*length(f)), shiftf, f=f, trim=trim)
     }
     
     return(f)
@@ -39,13 +39,17 @@ norm.qs <- function(nbins, sd, baseline, zero=0, trim=T)
     vsh <- baseline
     uni <- seq(0,1,length=nbins)
     f <- dnorm(seq(-1,1,length=nbins), sd=sd)
-    f <- (1-vsh)/(max(f)-min(f))*(f-max(f))+1 # range normalization
+    if(max(f)-min(f)>0) {
+      f <- (1-vsh)/(max(f)-min(f))*(f-max(f))+1 # range normalization
+    } else f <- f/sum(f)
     f <- shiftf(f,zero,trim)
     return(f)
 }
 
 logis.qs <- function(nbins, steep, width, baseline, zero=0, trim=T)
 {
+  if(nbins==1) return(1)
+  
     l1 <-  30*steep;
     hsh <- 30*width;
     vsh <- baseline; rot <- zero
@@ -53,7 +57,10 @@ logis.qs <- function(nbins, steep, width, baseline, zero=0, trim=T)
     odd <- nbins%%2
     nbins <- ceiling(nbins/2)
     f <- plogis(seq(-l1,l1,length=nbins)+hsh)+vsh;
-    f <- (1-vsh)/(max(f)-min(f))*(f-max(f))+1 # range normalization
+
+    if(max(f)-min(f)>0) {
+      f <- (1-vsh)/(max(f)-min(f))*(f-max(f))+1 # range normalization
+    } else f <- f/sum(f)
 
     f2 <- f[length(f):1]
 

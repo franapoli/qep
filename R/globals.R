@@ -1,11 +1,11 @@
-    
+
+setGeneric("ncol")
 ncol <- function(object, ...) UseMethod("ncol")
 ncol.default <- base::ncol
+setGeneric("nrow")
 nrow <- function(object, ...) UseMethod("nrow")
 nrow.default <- base::nrow
-dist <- function(object, ...) UseMethod("dist")
-if(require(stats))
-    dist.default <- stats::dist
+
 
 schementr <- function(scheme)
 {
@@ -16,12 +16,16 @@ schementr <- function(scheme)
 
 bsf.dist.row <- function(v1, V2, nbins, SF, maxD)
 {
-    return(
+    nbins <- max(v1)
+    SF <- abs(row(matrix(NA,nbins,nbins))-col(matrix(NA,nbins,nbins)))
+    maxD <- sum(abs(1:nbins-nbins:1))
+
+  return(
         apply(V2, 2, function(x) bsf.dist(v1, x, nbins, SF, maxD))
     )
 }
 
-jacc.dist.row <- function(v1, V2)
+manh.dist.row <- function(v1, V2)
 {
     return(
         apply(V2, 2, function(x) sum(abs(v1 - x)))
